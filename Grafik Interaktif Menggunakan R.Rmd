@@ -1,5 +1,5 @@
 ---
-title: "Grafik Interaktif Menggunakan R"
+title: "Starting-R"
 author: "Riki Herliansyah, S.Si., M.Stat"
 date: "Sabtu, 30 Juli 2021"
 output: slidy_presentation
