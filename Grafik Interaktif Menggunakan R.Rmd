@@ -1,0 +1,448 @@
+---
+title: "Grafik Interaktif Menggunakan R"
+author: "Riki Herliansyah, S.Si., M.Stat"
+date: "Sabtu, 30 Juli 2021"
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Highlight
+
+Silahkan install packages berikut jika ingin praktek bersama :)
+
+  - ggplot()
+  - plotly()
+  - dplyr()
+  - tibble()
+  - tidyverse()
+  - gapminder()
+
+
+## Beberapa contoh grafik interaktif
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.align="center"}
+library(gapminder)
+library(ggplot2)
+library(gganimate)
+library(gifski)
+
+p <- ggplot(mtcars, aes(x = wt, y = mpg)) + 
+  geom_point()
+
+p + annotate("rect", xmin=c(2,4), xmax=c(3,5), ymin=c(20,10) , ymax=c(30,20), alpha=0.2, color="blue", fill="blue")
+
+```
+
+## Like this
+
+```{r warning=FALSE,message=FALSE, fig.align="center"}
+
+require(tidyverse, quietly = TRUE)
+require(hrbrthemes)
+require(babynames)
+require(viridis)
+require(viridisLite)
+
+# Load dataset from github
+data <- read.table("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/3_TwoNumOrdered.csv", header=T)
+data$date <- as.Date(data$date)
+
+# Load dataset from github
+don <- babynames %>% 
+  filter(name %in% c("Ashley", "Amanda", "Mary", "Deborah",   "Dorothy", "Betty", "Helen", "Jennifer", "Shirley")) %>%
+  filter(sex=="F")
+
+# Plot
+don %>%
+  ggplot( aes(x=year, y=n, group=name, fill=name)) +
+    geom_area() +
+    scale_fill_viridis(discrete = TRUE) +
+    theme(legend.position="none") +
+    ggtitle("Popularity of American names in the previous 30 years") +
+    theme_ipsum() +
+    theme(
+      legend.position="none",
+      panel.spacing = unit(0, "lines"),
+      strip.text.x = element_text(size = 8),
+      plot.title = element_text(size=13)
+    ) +
+    facet_wrap(~name, scale="free_y")
+```
+
+## Like this
+
+```{r warning=FALSE, message=FALSE, fig.align="center"}
+library(igraph)
+library(networkD3)
+
+# create a dataset:
+data <- data_frame(
+  from=c("A", "A", "B", "D", "C", "D", "E", "B", "C", "D", "K", "A", "M"),
+  to=c("B", "E", "F", "A", "C", "A", "B", "Z", "A", "C", "A", "B", "K")
+)
+
+# Plot
+p <- simpleNetwork(data, height="250px", width="250px")
+
+p
+
+
+```
+
+## Like this
+
+```{r, message=FALSE, warning=FALSE, fig.align="center"}
+library(tidyverse)
+ 
+# Create dataset
+data <- data.frame(
+  id=seq(1,60),
+  individual=paste( "Mister ", seq(1,60), sep=""),
+  value=sample( seq(10,100), 60, replace=T)
+)
+ 
+# ----- This section prepare a dataframe for labels ---- #
+# Get the name and the y position of each label
+label_data <- data
+ 
+# calculate the ANGLE of the labels
+number_of_bar <- nrow(label_data)
+angle <-  90 - 360 * (label_data$id-0.5) /number_of_bar     # I substract 0.5 because the letter must have the angle of the center of the bars. Not extreme right(1) or extreme left (0)
+ 
+# calculate the alignment of labels: right or left
+# If I am on the left part of the plot, my labels have currently an angle < -90
+label_data$hjust<-ifelse( angle < -90, 1, 0)
+ 
+# flip angle BY to make them readable
+label_data$angle<-ifelse(angle < -90, angle+180, angle)
+# ----- ------------------------------------------- ---- #
+ 
+ 
+# Start the plot
+p <- ggplot(data, aes(x=as.factor(id), y=value)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  
+  # This add the bars with a blue color
+  geom_bar(stat="identity", fill=alpha("skyblue", 0.7)) +
+  
+  # Limits of the plot = very important. The negative value controls the size of the inner circle, the positive one is useful to add size over each bar
+  ylim(-100,120) +
+  
+  # Custom the theme: no axis title and no cartesian grid
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1,4), "cm")      # Adjust the margin to make in sort labels are not truncated!
+  ) +
+  
+  # This makes the coordinate polar instead of cartesian.
+  coord_polar(start = 0) +
+  
+  # Add the labels, using the label_data dataframe that we have created before
+  geom_text(data=label_data, aes(x=id, y=value+10, label=individual, hjust=hjust), color="black", fontface="bold",alpha=0.6, size=2.5, angle= label_data$angle, inherit.aes = FALSE ) 
+ 
+p
+```
+
+## And like this
+
+```{r, fig.align="center"}
+# Make a ggplot, but add frame=year: one image per year
+gg <-ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, color = continent)) +
+  geom_point() +
+  scale_x_log10() +
+  theme_bw() +
+  # gganimate specific bits:
+  labs(title = 'Year: {frame_time}', x = 'GDP per capita', y = 'life expectancy') +
+  transition_time(year) +
+  ease_aes('linear')
+animate(gg, renderer = gifski_renderer())
+
+```
+
+
+## Mengenal interface R 
+
+![Tampilan R Studio](C:/Users/s1898267/OneDrive/ITK/Prodi Statistika/Pelatihan R/R interface.JPG)
+
+
+## ggplot()
+
+Beberapa fungsi yang perlu diketahui ketika menggunakan ggplot():
+
+  - geom_point()
+  - geom_bar()
+  - geom_line()
+  - geom_bar()
+  - geom_density()
+  - geom_area()
+
+Dan masih banyak lagi :)
+
+## ggplot()
+
+Perintah dasar ggplot() adalah:
+
+    gg <- ggplot(data, aes(x, y)) 
+    gg + geom_point()
+    gg + geom_line()
+    gg + geom_boxplot()
+
+## ggplot()
+
+Sekarang mari kita coba untuk membuat grafik sederhana dengan menggunakan perintah sebelumnya.
+
+```{r, echo = TRUE, fig.align="center"}
+library(ggplot2)
+gg <- ggplot(mtcars, aes(x=wt, y=mpg)) 
+  
+gg + geom_point() 
+gg + geom_line()
+gg + geom_area()
+
+  
+```
+
+## Customize grafik anda!!!
+
+Mudah bukan? :) Selanjutnya, kita akan mengatur tampilan grafik menggunakan beberapa fungsi berikut:
+
+  - geom_text()/geom_label(): untuk menambahkan text/label pada data
+  - ggtitle()/labs(): untuk mengatur legend atau judul grafik
+  - xlab()/ylab(): mengubah nama sumbu x dan y
+  - theme_(): untuk mengubah tampilan (tema) grafik
+  
+## Customize grafik anda!!!
+
+Sekarang coba kita customize grafik berikut:
+  
+```{r message=FALSE, warning=FALSE, echo=TRUE, fig.align="center"}
+
+ToothGrowth$dose <- as.factor(ToothGrowth$dose)
+head(ToothGrowth)
+
+p <- ggplot(ToothGrowth, aes(x=dose, y=len)) + geom_boxplot()
+p
+
+p + ggtitle("Plot of length \n by dose") +
+  xlab("Dose (mg)") + ylab("Teeth length")
+
+p <- ggplot(ToothGrowth, aes(x=dose, y=len, fill=dose)) + geom_boxplot()
+p + labs(fill = "Dose (mg)") +  xlab("Dose (mg)") + ylab("Teeth length") 
+
+library(viridis)
+library(hrbrthemes)
+p + scale_fill_viridis(discrete = TRUE, alpha=0.5) +
+    geom_jitter(color="black", size=0.6, alpha=0.9) +
+    theme_ipsum() +
+    theme(
+      legend.position="none",
+      plot.title = element_text(size=11)
+    ) +
+    ggtitle("A boxplot with jitter") + xlab("Dose (mg)") + ylab("Teeth length")
+
+library(babynames)
+# Load dataset from github
+data <- babynames %>% 
+  filter(name %in% c("Amanda", "Jessica",    "Patricia", "Deborah",   "Dorothy",  "Helen")) %>%
+  filter(sex=="F")
+
+
+data %>%
+  ggplot( aes(x=year, y=n, group=name, color=name)) +
+    geom_line() +
+    scale_color_viridis(discrete = TRUE) +
+    theme(legend.position="none") +
+    ggtitle("Popularity of American names in the previous 30 years") +
+    theme_ipsum()
+
+```
+  
+## Customize grafik anda!!!
+
+Sekarang kita akan mencoba menambah teks pada grafik. Kita akan menggunakan data konsumsi bahan bakar pada contoh sebelumnya.
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE, fig.align="center"}
+library(tidyverse)
+
+p <- ggplot(mtcars, aes(x=wt, y=mpg)) +
+  geom_point()  
+
+rownames(mtcars)
+p +  geom_text(
+    label=rownames(mtcars), 
+    nudge_x = 0.25, nudge_y = 0.25, 
+    check_overlap = T
+  )
+
+p + geom_label(
+    label=rownames(mtcars), 
+    nudge_x = 0.25, nudge_y = 0.25, 
+    check_overlap = T
+  )
+
+p + geom_label(
+    label="Look at this!", 
+    x=4.1,
+    y=20,
+    label.padding = unit(0.55, "lines"), # Rectangle size around label
+    label.size = 0.35,
+    color = "black",
+    fill="#69b3a2"
+  )
+
+datacars <- mtcars %>%
+  rownames_to_column(var="carName")
+p + geom_label( 
+    data=datacars %>% filter(mpg>20 & wt>3), # Filter data first
+    aes(label=carName)
+  )
+
+```
+
+
+## Customize grafik anda!!!
+
+Sekarang kita akan menggabungkan beberapa grafik dalam satu frame dengan menggunakan fungsi face_wrap() atau menggunakan gridExtra()
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, fig.align="center"}
+
+# Split by columns (default)
+ggplot( mtcars , aes(x=mpg, y=wt, color=as.factor(cyl) )) + 
+  geom_point(size=3) +  
+  facet_wrap(~cyl) +
+  theme(legend.position="none")
+
+# Split by row
+ggplot( mtcars , aes(x=mpg, y=wt, color=as.factor(cyl)  )) + 
+  geom_point(size=3) +  
+  facet_wrap(~cyl , dir="v")  +
+  theme(legend.position="none")
+
+# Add label at the bottom
+ggplot( mtcars , aes(x=mpg, y=wt, color=as.factor(cyl)  )) + 
+  geom_point(size=3) +  
+  facet_wrap(~cyl , strip.position="bottom") +
+  theme(legend.position="none")
+
+ggplot( mtcars , aes(x=mpg, y=wt )) + 
+  geom_point() +
+  facet_grid( cyl ~ gear)
+
+
+
+data %>%
+  ggplot( aes(x=year, y=n, group=name, fill=name)) +
+    geom_area() +
+    scale_fill_viridis(discrete = TRUE) +
+    theme(legend.position="none") +
+    ggtitle("Popularity of American names in the previous 30 years") +
+    theme_ipsum() +
+    theme(
+      legend.position="none",
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8)
+    ) +
+    facet_wrap(~name, scale="free_y")
+```
+
+## Customize grafik anda!!!
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE, fig.align="center"}
+library(gridExtra)
+# Make 3 simple graphics:
+g1 <- ggplot(mtcars, aes(x=qsec)) + geom_density(fill="slateblue")
+g2 <- ggplot(mtcars, aes(x=drat, y=qsec, color=cyl)) + geom_point(size=5) + theme(legend.position="none")
+g3 <- ggplot(mtcars, aes(x=factor(cyl), y=qsec, fill=cyl)) + geom_boxplot() + theme(legend.position="none")
+g4 <- ggplot(mtcars , aes(x=factor(cyl), fill=factor(cyl))) +  geom_bar()
+ 
+# Plots
+grid.arrange(g2, arrangeGrob(g3, g4, ncol=2), nrow = 2)
+grid.arrange(g1, g2, g3, nrow = 3)
+grid.arrange(g2, arrangeGrob(g3, g4, ncol=2), nrow = 1)
+```
+
+
+
+## plotly()
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, fig.align="center"}
+
+library(plotly)
+
+# Load dataset from github
+data <- read.table("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/3_TwoNumOrdered.csv", header=T)
+data$date <- as.Date(data$date)
+
+# Usual area chart
+p <- data %>%
+  ggplot( aes(x=date, y=value)) +
+    geom_area(fill="#69b3a2", alpha=0.5) +
+    geom_line(color="#69b3a2") +
+    ylab("bitcoin price ($)") +
+    theme_ipsum()
+
+# Turn it interactive with ggplotly
+ggplotly(p)
+
+data = head(mtcars, 30)
+p2 <- ggplot(data, aes(x=wt, y=mpg)) +
+  geom_point() 
+ggplotly(p2)
+
+# Plot
+data <- babynames %>% 
+  filter(name %in% c("Amanda", "Jessica",    "Patricia", "Deborah",   "Dorothy",  "Helen")) %>%
+  filter(sex=="F")
+
+p3 <- data %>% 
+  ggplot( aes(x=year, y=n, fill=name, text=name)) +
+    geom_area( ) +
+    scale_fill_viridis(discrete = TRUE) +
+    theme(legend.position="none") +
+    ggtitle("Popularity of American names in the previous 30 years") +
+    theme_ipsum() +
+    theme(legend.position="none")
+ggplotly(p3, tooltip="text")
+
+```
+
+## Contoh lagi untuk plotly()
+
+```{r, echo=TRUE, fig.align="center"}
+
+p <- gapminder %>%
+  filter(year==1977) %>%
+  ggplot( aes(gdpPercap, lifeExp, size = pop, color=continent)) +
+  geom_point() +
+  theme_bw()
+
+ggplotly(p)
+
+```
+
+```{css, echo=FALSE}
+h1, h4 {
+  text-align: center;
+  color: blue;
+  font-weight: bold;
+}
+
+body{
+  font-family: Helvetica;
+  font-size: 16pt;
+}
+
+```
+
+## Penutup
+
+<center>
+
+![TERIMA KASIH](C:/Users/s1898267/OneDrive/ITK/Prodi Statistika/Pelatihan R/thanks.png)
+
+<\center>
