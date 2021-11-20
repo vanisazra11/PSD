@@ -260,19 +260,3 @@ nilai_data_frame %>%
 ```
 
 
-
-
-```{css, echo=FALSE}
-h1, h4 {
-  text-align: center;
-  color: blue;
-  font-weight: bold;
-}
-
-body{
-  font-family: Helvetica;
-  font-size: 16pt;
-}
-
-```
-

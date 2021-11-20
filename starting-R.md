@@ -407,17 +407,3 @@ nilai_data_frame %>%
     ## Warning: Ignoring unknown parameters: binwidth
 
 ![](starting-R_files/figure-gfm/unnamed-chunk-16-3.png)<!-- -->
-
-<style type="text/css">
-h1, h4 {
-  text-align: center;
-  color: blue;
-  font-weight: bold;
-}
-
-body{
-  font-family: Helvetica;
-  font-size: 16pt;
-}
-
-</style>
